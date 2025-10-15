@@ -5,20 +5,10 @@ interface SubjectAccess {
   id: string;
   name: string;
   hasAccess: boolean;
-  accessType: 'school' | 'class_subscription' | 'subject_subscription' | 'none';
+  accessType: 'full';
   price?: number;
   currency?: string;
   canUpgrade?: boolean;
-}
-
-interface DbSubject {
-  id: string;
-  name: string;
-  icon: string;
-  color: string;
-  orderIndex: number;
-  price: number | null;
-  currency: string;
 }
 
 export async function GET(
@@ -34,10 +24,7 @@ export async function GET(
 
     // Get class with subjects (no authentication required)
     const classData = await prisma.class.findUnique({
-      where: { 
-        id: parseInt(classId),
-        isActive: true
-      },
+      where: { id: parseInt(classId) },
       include: {
         subjects: {
           select: {
@@ -47,8 +34,9 @@ export async function GET(
             color: true,
             orderIndex: true,
             price: true,
-            currency: true
-          }
+            currency: true,
+          },
+          orderBy: { orderIndex: 'asc' }
         }
       }
     });
@@ -58,67 +46,25 @@ export async function GET(
     }
 
     // Grant full access to all subjects (no authentication required)
-    const subjectAccess: SubjectAccess[] = classData.subjects.map((subject: DbSubject) => ({
-      select: {
-        classId: true,
-        subjectId: true,
-        planType: true,
-        status: true,
-        endDate: true
-      }
-    });
-
-    // Check for class-wide subscription
-    const classSubscription = subscriptions?.find((s) => 
-      s.classId === parseInt(classId) && !s.subjectId
-    );
-
-    // Check for subject-specific subscriptions
-    const subjectSubscriptions = new Map(
-      subscriptions?.filter((s) => s.subjectId).map((s) => [s.subjectId, s]) || []
-    );
-
-    // Check school access
-    const gradeToClassMap: Record<string, number[]> = {
-      '5': [5], '6': [6], '7': [7], '8': [8], '9': [9], '10': [10]
-    };
-    const hasSchoolAccess = user.school?.isActive && user.grade && 
-      (gradeToClassMap[user.grade] || []).includes(parseInt(classId));
-
-    // Build subject access information
-    const subjectAccess: SubjectAccess[] = classData.subjects.map((subject: DbSubject) => {
-      const hasSubjectSubscription = subjectSubscriptions.has(subject.id);
-      const hasAccess = hasSchoolAccess || !!classSubscription || hasSubjectSubscription;
-      
-      let accessType: SubjectAccess['accessType'] = 'none';
-      if (hasSchoolAccess) accessType = 'school';
-      else if (classSubscription) accessType = 'class_subscription';
-      else if (hasSubjectSubscription) accessType = 'subject_subscription';
-
-      return {
-        id: subject.id,
-        name: subject.name,
-        hasAccess,
-        accessType,
-        price: subject.price || undefined,
-        currency: subject.currency,
-        canUpgrade: hasSubjectSubscription && !classSubscription // Can upgrade from subject to class
-      };
-    });
+    const subjectAccess: SubjectAccess[] = classData.subjects.map((subject) => ({
+      id: subject.id,
+      name: subject.name,
+      hasAccess: true,
+      accessType: 'full' as const,
+      price: subject.price || undefined,
+      currency: subject.currency,
+      canUpgrade: false
+    }));
 
     return NextResponse.json({
       classId: parseInt(classId),
       className: classData.name,
       classPrice: classData.price,
-      hasFullAccess: hasSchoolAccess || !!classSubscription,
-      accessType: hasSchoolAccess ? 'school' : classSubscription ? 'class_subscription' : 'partial',
+      hasFullAccess: true,
+      accessType: 'full',
       subjectAccess,
-      canUpgradeToClass: subjectSubscriptions.size > 0 && !classSubscription,
-      upgradeOptions: subjectSubscriptions.size > 0 && !classSubscription && classData.price ? {
-        currentSubjects: Array.from(subjectSubscriptions.keys()),
-        classPrice: classData.price,
-        potentialSavings: (subjectSubscriptions.size * Math.ceil(classData.price / classData.subjects.length)) - classData.price
-      } : null
+      canUpgradeToClass: false,
+      upgradeOptions: null
     });
 
   } catch (error) {
