@@ -1,0 +1,551 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+model Class {
+  id            Int            @id @default(autoincrement())
+  name          String
+  description   String
+  isActive      Boolean        @default(true)
+  created_at    DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  currency      String         @default("INR")
+  price         Int?           @default(29900)
+  subjects      Subject[]
+  subscriptions Subscription[]
+
+  @@map("classes")
+}
+
+model Subject {
+  id            String         @id @default(cuid())
+  name          String
+  icon          String
+  color         String
+  isLocked      Boolean        @default(false)
+  orderIndex    Int
+  classId       Int
+  created_at    DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  currency      String         @default("INR")
+  price         Int?           @default(7500)
+  chapters      Chapter[]
+  class         Class          @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subscriptions Subscription[]
+
+  @@map("subjects")
+}
+
+model Chapter {
+  id         String   @id @default(cuid())
+  name       String
+  orderIndex Int
+  subjectId  String
+  created_at DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  subject    Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  topics     Topic[]
+
+  @@map("chapters")
+}
+
+model Topic {
+  id          String              @id @default(cuid())
+  name        String
+  type        TopicType
+  duration    String?
+  orderIndex  Int
+  chapterId   String
+  difficulty  DifficultyLevel     @default(BEGINNER)
+  created_at  DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+  description String?
+  content     TopicContent?
+  chapter     Chapter             @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  progress    UserTopicProgress[]
+
+  @@map("topics")
+}
+
+model TopicContent {
+  id           String      @id @default(cuid())
+  topicId      String      @unique
+  contentType  ContentType
+  url          String?
+  videoUrl     String?
+  pdfUrl       String?
+  textContent  String?
+  iframeHtml   String?     @db.Text
+  widgetConfig Json?
+  created_at   DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  topic        Topic       @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@map("topic_contents")
+}
+
+model User {
+  id            String              @id @default(cuid())
+  name          String?
+  email         String?             @unique
+  emailVerified DateTime?           @map("email_verified")
+  image         String?
+  displayName   String?             @map("display_name")
+  role          UserRole            @default(USER)
+  isActive      Boolean             @default(true) @map("is_active")
+  lastLoginAt   DateTime?           @map("last_login_at")
+  created_at    DateTime            @default(now()) @map("created_at")
+  updatedAt     DateTime            @updatedAt @map("updated_at")
+  schoolId      String?             @map("school_id")
+  grade         String?             @map("grade")
+  section       String?             @map("section")
+  rollNumber    String?             @map("roll_number")
+  phone         String?
+  parentName    String?             @map("parent_name")
+  parentEmail   String?             @map("parent_email")
+  
+  // NextAuth.js relations
+  accounts      Account[]
+  sessions      Session[]
+  
+  // Existing relations
+  notifications     Notification[]
+  notificationQueue NotificationQueue[]
+  payments          Payment[]
+  subscriptions     Subscription[]
+  activities        UserActivity[]
+  progress          UserTopicProgress[]
+  school            School?             @relation(fields: [schoolId], references: [id])
+
+  @@map("users")
+}
+
+// NextAuth.js required models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+ 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+ 
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  @@map("sessions")
+}
+ 
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+ 
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+model UserTopicProgress {
+  id          String    @id @default(cuid())
+  userId      String
+  topicId     String
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  timeSpent   Int?
+  created_at  DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  topic       Topic     @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, topicId])
+  @@map("user_topic_progress")
+}
+
+model Subscription {
+  id             String             @id @default(cuid())
+  userId         String
+  status         SubscriptionStatus @default(INACTIVE)
+  planType       String
+  planName       String?
+  amount         Int?
+  currency       String             @default("INR")
+  startDate      DateTime           @default(now())
+  endDate        DateTime?
+  autoRenew      Boolean            @default(false)
+  created_at     DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+  classId        Int?
+  subjectId      String?
+  upgradedFromId String?
+  class          Class?             @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subject        Subject?           @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  upgradedFrom   Subscription?      @relation("SubscriptionUpgrade", fields: [upgradedFromId], references: [id])
+  upgradedTo     Subscription[]     @relation("SubscriptionUpgrade")
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  userId            String
+  gateway           PaymentGateway @default(RAZORPAY)
+  razorpayPaymentId String?       @unique
+  razorpayOrderId   String?
+  razorpaySignature String?
+  cashfreePaymentId String?       @unique
+  cashfreeOrderId   String?
+  cashfreeSignature String?
+  amount            Int
+  currency          String        @default("INR")
+  status            PaymentStatus @default(PENDING)
+  paymentMethod     String?
+  description       String?
+  failureReason     String?
+  refundId          String?
+  metadata          Json?
+  created_at        DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model FormResponse {
+  id        String            @id @default(cuid())
+  formType  FormType          @default(CONTACT)
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String            @db.Text
+  metadata  Json?             // For additional form-specific data
+  status    FormResponseStatus @default(UNREAD)
+  created_at DateTime         @default(now()) @map("created_at")
+  updatedAt  DateTime         @updatedAt @map("updated_at")
+
+  @@map("form_responses")
+}
+
+model AdminSettings {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  category    String?
+  dataType    String   @default("string")
+  isPublic    Boolean  @default(false)
+  created_at  DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("admin_settings")
+}
+
+model ContentPage {
+  id              String          @id @default(cuid())
+  title           String
+  content         String
+  slug            String          @unique
+  pageType        ContentPageType
+  isPublished     Boolean         @default(false)
+  metaTitle       String?
+  metaDescription String?
+  author          String?
+  tags            String[]        @default([])
+  created_at      DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  @@map("content_pages")
+}
+
+model UserActivity {
+  id          String       @id @default(cuid())
+  userId      String
+  action      ActivityType
+  description String
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+  sessionId   String?
+  created_at  DateTime     @default(now()) @map("created_at")
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, created_at])
+  @@index([action, created_at])
+  @@map("user_activities")
+}
+
+model Notification {
+  id         String               @id @default(cuid())
+  userId     String?
+  title      String
+  message    String
+  type       NotificationType     @default(INFO)
+  priority   NotificationPriority @default(NORMAL)
+  isRead     Boolean              @default(false)
+  data       Json?
+  expiresAt  DateTime?
+  created_at DateTime             @default(now()) @map("created_at")
+  updatedAt  DateTime             @updatedAt @map("updated_at")
+  user       User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, created_at])
+  @@map("notifications")
+}
+
+model NotificationQueue {
+  id          String                     @id @default(cuid())
+  userId      String
+  type        NotificationQueueType
+  data        Json
+  status      NotificationQueueStatus    @default(PENDING)
+  scheduledFor DateTime
+  processedAt DateTime?
+  retryCount  Int                       @default(0)
+  maxRetries  Int                       @default(3)
+  error       String?
+  created_at  DateTime                  @default(now()) @map("created_at")
+  updatedAt   DateTime                  @updatedAt @map("updated_at")
+  user        User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, scheduledFor])
+  @@index([userId, type])
+  @@map("notification_queue")
+}
+
+model Analytics {
+  id         String   @id @default(cuid())
+  eventType  String
+  eventData  Json
+  userId     String?
+  sessionId  String?
+  ipAddress  String?
+  userAgent  String?
+  referrer   String?
+  created_at DateTime @default(now()) @map("created_at")
+
+  @@index([eventType, created_at])
+  @@index([userId, created_at])
+  @@index([sessionId, created_at])
+  @@map("analytics")
+}
+
+model Announcement {
+  id          String           @id @default(cuid())
+  title       String
+  content     String
+  type        AnnouncementType @default(INFO)
+  isActive    Boolean          @default(true)
+  targetUsers String[]         @default([])
+  startDate   DateTime?
+  endDate     DateTime?
+  created_at  DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  @@map("announcements")
+}
+
+model School {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  phone         String?
+  address       String?
+  website       String?
+  logo          String?
+  studentCount  Int      @default(0) @map("student_count")
+  isActive      Boolean  @default(true) @map("is_active")
+  principalName String?  @map("principal_name")
+  contactPerson String?  @map("contact_person")
+  created_at    DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  users         User[]
+
+  @@map("schools")
+}
+
+enum TopicType {
+  VIDEO
+  INTERACTIVE
+  EXERCISE
+  AUDIO
+}
+
+enum DifficultyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum ContentType {
+  EXTERNAL_LINK
+  VIDEO
+  PDF
+  TEXT
+  INTERACTIVE_WIDGET
+  IFRAME
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
+  TEACHER
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  CANCELLED
+  EXPIRED
+  TRIAL
+  GRACE_PERIOD
+  PENDING_RENEWAL
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum PaymentGateway {
+  RAZORPAY
+  CASHFREE
+}
+
+enum ContentPageType {
+  PRIVACY_POLICY
+  TERMS_OF_SERVICE
+  ABOUT_US
+  FAQ
+  HELP
+  CONTACT
+  BLOG_POST
+}
+
+enum ActivityType {
+  LOGIN
+  LOGOUT
+  TOPIC_STARTED
+  TOPIC_COMPLETED
+  SUBSCRIPTION_CREATED
+  SUBSCRIPTION_CANCELLED
+  PAYMENT_INITIATED
+  PAYMENT_COMPLETED
+  PAYMENT_FAILED
+  PROFILE_UPDATED
+  CLASS_ACCESSED
+  SUBJECT_ACCESSED
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+  ANNOUNCEMENT
+  SUBSCRIPTION_REMINDER
+  PAYMENT_REMINDER
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum NotificationQueueType {
+  expiry_warning
+  grace_period
+  expired
+  renewal_reminder
+  subscription_created
+  subscription_cancelled
+  subscription_renewed
+  payment_failed
+  auto_renewal_failed
+  auto_renewal_attempt
+}
+
+enum NotificationQueueStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+enum AnnouncementType {
+  INFO
+  UPDATE
+  MAINTENANCE
+  PROMOTION
+  WARNING
+}
+
+enum FormType {
+  CONTACT
+  SUPPORT
+  FEEDBACK
+  GENERAL
+}
+
+enum FormResponseStatus {
+  UNREAD
+  READ
+  REPLIED
+  ARCHIVED
+}
+
+model TopicDifficultyRating {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  topicId    String   @map("topic_id")
+  classId    Int      @map("class_id")
+  rating     Int      // 1-5 stars
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, topicId])
+  @@map("topic_difficulty_ratings")
+}
+
+model ErrorLog {
+  id        String   @id @default(cuid())
+  level     String   // INFO, WARN, ERROR, CRITICAL
+  source    String   // Component/API that generated the error
+  message   String
+  details   String?  // JSON string with additional details
+  userId    String?
+  paymentId String?
+  timestamp DateTime @default(now())
+  stack     String?  // Stack trace for errors
+
+  @@index([source, timestamp])
+  @@index([level, timestamp])
+  @@map("error_logs")
+}

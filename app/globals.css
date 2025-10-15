@@ -1,0 +1,188 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Main background and foreground */
+    --background: 0 0% 100%;
+    --foreground: 220 25% 15%;
+
+    /* Card styles */
+    --card: 0 0% 100%;
+    --card-foreground: 220 25% 15%;
+    
+    /* Popover styles */
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 25% 15%;
+
+    /* Primary - Scio Blue (#3B82C4) */
+    --primary: 212 65% 51%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Scio Orange (#F59E0B) */
+    --secondary: 38 92% 50%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Other UI elements */
+    --muted: 220 15% 96%;
+    --muted-foreground: 220 15% 46%;
+    
+    --accent: 212 65% 97%;
+    --accent-foreground: 212 65% 25%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 15% 92%;
+    --input: 220 15% 92%;
+    --ring: 212 65% 51%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 220 25% 8%;
+    --foreground: 0 0% 98%;
+
+    --card: 220 25% 8%;
+    --card-foreground: 0 0% 98%;
+    
+    --popover: 220 25% 8%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Primary - Scio Blue */
+    --primary: 212 65% 51%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Scio Orange */
+    --secondary: 38 92% 50%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 220 25% 16%;
+    --muted-foreground: 220 15% 66%;
+    
+    --accent: 212 65% 16%;
+    --accent-foreground: 212 65% 75%;
+
+    --destructive: 0 74% 42%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 220 25% 16%;
+    --input: 220 25% 16%;
+    --ring: 212 65% 51%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+@layer components {
+  .tab-content {
+    @apply opacity-0 transition-opacity duration-200;
+  }
+  
+  .tab-content.active {
+    @apply opacity-100;
+  }
+
+  /* Typography classes */
+  h1, .h1 {
+    @apply font-heading text-4xl sm:text-5xl text-foreground font-bold tracking-tight;
+  }
+
+  h2, .h2 {
+    @apply font-heading text-3xl sm:text-4xl text-foreground font-bold tracking-tight;
+  }
+
+  h3, .h3 {
+    @apply font-heading text-2xl sm:text-3xl text-foreground font-semibold;
+  }
+
+  h4, .h4 {
+    @apply font-heading text-xl sm:text-2xl text-foreground font-semibold;
+  }
+
+  p {
+    @apply font-sans text-base text-foreground/80;
+  }
+
+  .lead {
+    @apply font-sans text-lg sm:text-xl text-foreground/80 font-normal;
+  }
+
+  .small {
+    @apply font-sans text-sm text-foreground/70;
+  }
+
+  .display {
+    @apply font-heading text-5xl sm:text-6xl lg:text-7xl text-foreground font-bold tracking-tight;
+  }
+
+  .subtitle {
+    @apply font-sans text-lg text-foreground/70 font-normal;
+  }
+}
+
+@layer utilities {
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    opacity: 0;
+    animation: fade-in 1s ease-out forwards;
+    animation-delay: var(--animation-delay, 0s);
+  }
+
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-3px);
+    }
+  }
+
+  .animate-bounce {
+    animation: bounce 1s infinite;
+  }
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+  /* Grid pattern for background decoration */
+  .bg-grid-pattern {
+    background-image: 
+      linear-gradient(to right, rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+}
+
+/* `html` is added to beat the specificity of just `body[data-scroll-locked]` */
+html body[data-scroll-locked] {
+  overflow: unset !important;
+  margin-right: unset !important;
+  --removed-body-scroll-bar-size: 0 !important; /* is this needed? */
+}
