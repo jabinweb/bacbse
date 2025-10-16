@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
+import { getCurrentSiteUrl } from "@/lib/site-utils";
 
 interface SignInProps {
   callbackUrl?: string;
@@ -29,7 +30,14 @@ export function SignIn({
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
-      await signIn('google', { callbackUrl });
+      
+      // Dynamically get the current origin for Google sign-in
+      const currentOrigin = window.location.origin;
+      const dynamicCallbackUrl = `${currentOrigin}${callbackUrl}`;
+      
+      console.log('🔵 Google sign-in with dynamic callback:', dynamicCallbackUrl);
+      
+      await signIn('google', { callbackUrl: dynamicCallbackUrl });
     } catch (error: unknown) {
       console.error('Google Sign-in Error:', error);
       setError('Failed to sign in with Google');
@@ -46,12 +54,19 @@ export function SignIn({
       setIsLoading(true);
       setError(null);
       
+      // Dynamically get the current origin (domain + protocol)
+      const currentOrigin = window.location.origin;
+      const dynamicCallbackUrl = `${currentOrigin}${callbackUrl}`;
+      
+      console.log('🔵 Current origin:', currentOrigin);
+      console.log('🔵 Dynamic callback URL:', dynamicCallbackUrl);
+      
       // Try making a direct POST request to the auth API with form data
       console.log('🔵 Making direct POST request to auth API...');
       
       const formData = new FormData();
       formData.append('email', email);
-      formData.append('callbackUrl', callbackUrl);
+      formData.append('callbackUrl', dynamicCallbackUrl);
       formData.append('provider', 'nodemailer');
       
       const response = await fetch('/api/auth/signin/nodemailer', {
