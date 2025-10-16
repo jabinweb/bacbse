@@ -46,18 +46,26 @@ export function SignIn({
       setIsLoading(true);
       setError(null);
       
+      // First, get the CSRF token
+      console.log('🔵 Fetching CSRF token...');
+      const csrfResponse = await fetch('/api/auth/csrf');
+      const csrfData = await csrfResponse.json();
+      console.log('🔵 CSRF token retrieved:', csrfData.csrfToken ? 'Yes' : 'No');
+      
       console.log('🔵 Calling signIn with nodemailer provider...');
       console.log('🔵 Parameters:', { 
         provider: 'nodemailer',
         email,
         callbackUrl,
-        redirect: false
+        redirect: false,
+        csrfToken: csrfData.csrfToken
       });
       
       const result = await signIn('nodemailer', { 
         email,
         callbackUrl,
-        redirect: false
+        redirect: false,
+        csrfToken: csrfData.csrfToken
       });
       
       console.log('🔵 signIn result:', result);
