@@ -112,10 +112,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
         }
         
+        // Safety check to ensure we have a valid URL
+        if (!fixedUrl || fixedUrl.trim() === '') {
+          console.error('❌ ERROR: No valid URL for email link!');
+          fixedUrl = url; // Fallback to original URL
+        }
+        
+        console.log('✅ Final URL for email button:', fixedUrl);
+        
         try {
           console.log('🚀 Starting email verification process for:', email);
-          
-          const { host } = new URL(fixedUrl)
+          console.log('🔍 Final URL that will be used in email:', fixedUrl);
           const { createTransport } = await import("nodemailer")
           
           // Get base SMTP config from environment variables
@@ -193,8 +200,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         console.log('📧 Email details:', {
           to: email,
           from: fromAddress,
-          subject: `Sign in to ${host}`,
-          url: fixedUrl
+          subject: `Your sign-in link for Scio Sprints`,
+          originalUrl: url,
+          fixedUrl: fixedUrl,
+          linkWillBe: `href="${fixedUrl}"`
         });
         
         const result = await transport.sendMail({
@@ -235,6 +244,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         </td>
                       </tr>
                     </table>
+                    
+                    <!-- Debug: Plain text link for testing -->
+                    <p style="color: #666666; margin: 20px 0; font-size: 12px; word-break: break-all;">
+                      <strong>Debug Link:</strong><br>
+                      <a href="${fixedUrl}" target="_blank" style="color: #346df1;">${fixedUrl}</a>
+                    </p>
                     <p style="color: #999999; margin: 30px 0 0 0; font-size: 14px; line-height: 1.5;">
                       This link will expire in 24 hours for security reasons.<br>
                       If you didn't request this email, you can safely ignore it.
