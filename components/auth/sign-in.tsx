@@ -40,9 +40,19 @@ export function SignIn({
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🔵 Email sign-in button clicked for email:', email);
+    
     try {
       setIsLoading(true);
       setError(null);
+      
+      console.log('🔵 Calling signIn with nodemailer provider...');
+      console.log('🔵 Parameters:', { 
+        provider: 'nodemailer',
+        email,
+        callbackUrl,
+        redirect: false
+      });
       
       const result = await signIn('nodemailer', { 
         email,
@@ -50,17 +60,22 @@ export function SignIn({
         redirect: false
       });
       
+      console.log('🔵 signIn result:', result);
+      
       if (result?.error) {
+        console.error('🔴 signIn returned error:', result.error);
         setError('Failed to send sign-in email. Please try again.');
       } else {
+        console.log('🟢 signIn successful, email should be sent');
         setEmailSent(true);
         setError(null);
       }
     } catch (error: unknown) {
-      console.error('Email Sign-in Error:', error);
+      console.error('🔴 Email Sign-in Error:', error);
       setError('Failed to send sign-in email');
     } finally {
       setIsLoading(false);
+      console.log('🔵 Email sign-in process completed');
     }
   };
 

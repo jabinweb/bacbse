@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import authConfig from "./authConfig"
 import { UserRole } from "@prisma/client"
 import { logLogin } from "@/lib/activity-logger"
+import type { Adapter } from "next-auth/adapters"
 
 // Helper function to get SMTP settings synchronously for NextAuth
 function getSmtpConfig() {
@@ -18,9 +19,18 @@ function getSmtpConfig() {
   };
 }
 
+console.log('🟦 NextAuth configuration initializing...');
+console.log('🟦 Environment check:', {
+  hasAuthSecret: !!process.env.AUTH_SECRET,
+  hasEmailHost: !!process.env.EMAIL_SERVER_HOST,
+  hasEmailUser: !!process.env.EMAIL_SERVER_USER,
+  hasEmailPassword: !!process.env.EMAIL_SERVER_PASSWORD,
+  hasEmailFrom: !!process.env.EMAIL_FROM,
+});
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(prisma) as Adapter,
   secret: process.env.AUTH_SECRET,
   experimental: {
     enableWebAuthn: false,
@@ -31,6 +41,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       server: getSmtpConfig(),
       from: process.env.EMAIL_FROM || 'info@sciolabs.in',
       sendVerificationRequest: async ({ identifier: email, url }) => {
+        console.log('🟦 Nodemailer provider: sendVerificationRequest called');
+        console.log('🟦 Email:', email);
+        console.log('🟦 URL:', url);
         try {
           console.log('🚀 Starting email verification process for:', email);
           
