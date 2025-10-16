@@ -46,37 +46,30 @@ export function SignIn({
       setIsLoading(true);
       setError(null);
       
-      // First, get the CSRF token
-      console.log('🔵 Fetching CSRF token...');
-      const csrfResponse = await fetch('/api/auth/csrf');
-      const csrfData = await csrfResponse.json();
-      console.log('🔵 CSRF token retrieved:', csrfData.csrfToken ? 'Yes' : 'No');
+      // Try making a direct POST request to the auth API with form data
+      console.log('🔵 Making direct POST request to auth API...');
       
-      console.log('🔵 Calling signIn with nodemailer provider...');
-      console.log('🔵 Parameters:', { 
-        provider: 'nodemailer',
-        email,
-        callbackUrl,
-        redirect: false,
-        csrfToken: csrfData.csrfToken
+      const formData = new FormData();
+      formData.append('email', email);
+      formData.append('callbackUrl', callbackUrl);
+      formData.append('provider', 'nodemailer');
+      
+      const response = await fetch('/api/auth/signin/nodemailer', {
+        method: 'POST',
+        body: formData,
       });
       
-      const result = await signIn('nodemailer', { 
-        email,
-        callbackUrl,
-        redirect: false,
-        csrfToken: csrfData.csrfToken
-      });
+      console.log('🔵 Direct POST response status:', response.status);
+      console.log('🔵 Direct POST response headers:', Object.fromEntries(response.headers));
       
-      console.log('🔵 signIn result:', result);
-      
-      if (result?.error) {
-        console.error('🔴 signIn returned error:', result.error);
-        setError('Failed to send sign-in email. Please try again.');
-      } else {
-        console.log('🟢 signIn successful, email should be sent');
+      if (response.ok) {
+        console.log('🟢 Email sign-in request successful');
         setEmailSent(true);
         setError(null);
+      } else {
+        const errorText = await response.text();
+        console.error('🔴 Direct POST error:', errorText);
+        setError('Failed to send sign-in email. Please try again.');
       }
     } catch (error: unknown) {
       console.error('🔴 Email Sign-in Error:', error);
