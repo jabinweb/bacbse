@@ -44,6 +44,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma) as Adapter,
   secret: process.env.AUTH_SECRET,
+  // Additional configuration for Coolify/deployment compatibility
+  debug: process.env.NODE_ENV === "development",
+  logger: {
+    error(error: Error) {
+      console.error('🔴 NextAuth Error:', error);
+    },
+    warn(code) {
+      console.warn('🟡 NextAuth Warning:', code);
+    },
+    debug(code, metadata) {
+      console.log('🔵 NextAuth Debug:', code, metadata);
+    }
+  },
   experimental: {
     enableWebAuthn: false,
   },

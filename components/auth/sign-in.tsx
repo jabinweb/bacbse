@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
-import { getCurrentSiteUrl } from "@/lib/site-utils";
 
 interface SignInProps {
   callbackUrl?: string;
@@ -54,27 +53,35 @@ export function SignIn({
       setIsLoading(true);
       setError(null);
       
-      // Dynamically get the current origin (domain + protocol)
+
+      
+      // Get current origin for proper callback URL
       const currentOrigin = window.location.origin;
       const dynamicCallbackUrl = `${currentOrigin}${callbackUrl}`;
       
       console.log('🔵 Current origin:', currentOrigin);
       console.log('🔵 Dynamic callback URL:', dynamicCallbackUrl);
-      console.log('🔵 Using NextAuth signIn function with redirect=true...');
+      console.log('🔵 Using NextAuth signIn function with redirect=false...');
       
-      // Use NextAuth signIn with redirect=true to let NextAuth handle the flow
-      const result = await signIn('nodemailer', {
-        email: email,
+      const result = await signIn('nodemailer', { 
+        email,
         callbackUrl: dynamicCallbackUrl,
-        redirect: false, // We'll handle the success state manually
+        redirect: false
       });
       
       console.log('🔵 NextAuth signIn result:', result);
       
       if (result?.error) {
-        console.error('� NextAuth signIn error:', result.error);
+        console.error('🔴 NextAuth signIn error:', result.error);
         if (result.error === 'MissingCSRF') {
-          setError('Security token missing. Please refresh the page and try again.');
+          // For Coolify deployments, try with redirect: true instead
+          console.log('🔵 CSRF error detected, trying with redirect=true for Coolify...');
+          await signIn('nodemailer', { 
+            email,
+            callbackUrl: dynamicCallbackUrl,
+            redirect: true // This should work around the CSRF issue
+          });
+          return; // Function will exit here due to redirect
         } else {
           setError('Failed to send sign-in email. Please try again.');
         }

@@ -18,34 +18,35 @@ export default {
     }),
   ],
   trustHost: true, // Trust the host in production environments
-  useSecureCookies: process.env.NODE_ENV === "production", // Use secure cookies in production
+  useSecureCookies: false, // Disable secure cookies for Coolify compatibility
+  // Simplify cookie configuration for deployment platforms
   cookies: {
     sessionToken: {
-      name: `${process.env.NODE_ENV === "production" ? "__Secure-" : ""}next-auth.session-token`,
+      name: "next-auth.session-token",
       options: {
         httpOnly: true,
         sameSite: "lax",
         path: "/",
-        secure: process.env.NODE_ENV === "production",
+        secure: false, // Disable secure flag for HTTP deployments
         maxAge: 30 * 24 * 60 * 60 // 30 days
       }
     },
     callbackUrl: {
-      name: `${process.env.NODE_ENV === "production" ? "__Secure-" : ""}next-auth.callback-url`,
+      name: "next-auth.callback-url",
       options: {
         sameSite: "lax",
         path: "/",
-        secure: process.env.NODE_ENV === "production",
+        secure: false,
         maxAge: 15 * 60 // 15 minutes
       }
     },
     csrfToken: {
-      name: `${process.env.NODE_ENV === "production" ? "__Host-" : ""}next-auth.csrf-token`,
+      name: "next-auth.csrf-token",
       options: {
         httpOnly: true,
         sameSite: "lax",
         path: "/",
-        secure: process.env.NODE_ENV === "production",
+        secure: false,
         maxAge: 15 * 60 // 15 minutes
       }
     }
