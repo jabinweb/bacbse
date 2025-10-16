@@ -34,8 +34,21 @@ if (!process.env.NEXTAUTH_URL && process.env.VERCEL_URL) {
   process.env.NEXTAUTH_URL = `https://${process.env.VERCEL_URL}`;
   console.log('🔧 Dynamically set NEXTAUTH_URL to:', process.env.NEXTAUTH_URL);
 } else if (!process.env.NEXTAUTH_URL && process.env.NODE_ENV === 'production') {
-  // In production, try to detect from other environment variables
-  console.log('⚠️ NEXTAUTH_URL not set in production environment');
+  // For Coolify and other deployment platforms, try common environment variables
+  const possibleUrls = [
+    process.env.PUBLIC_URL,
+    process.env.RAILWAY_STATIC_URL,
+    process.env.RENDER_EXTERNAL_URL,
+    process.env.APP_URL,
+    process.env.SITE_URL
+  ].filter(Boolean);
+  
+  if (possibleUrls.length > 0) {
+    process.env.NEXTAUTH_URL = possibleUrls[0];
+    console.log('🔧 Dynamically set NEXTAUTH_URL from deployment env to:', process.env.NEXTAUTH_URL);
+  } else {
+    console.log('⚠️ NEXTAUTH_URL not set in production environment - will use request host');
+  }
 }
 
 console.log('🔧 Current NEXTAUTH_URL:', process.env.NEXTAUTH_URL || 'Not set (will use request host)');
@@ -68,11 +81,36 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       sendVerificationRequest: async ({ identifier: email, url }) => {
         console.log('🟦 Nodemailer provider: sendVerificationRequest called');
         console.log('🟦 Email:', email);
-        console.log('🟦 URL:', url);
+        console.log('🟦 Original URL:', url);
+        
+        // Fix localhost URL issue in Coolify deployments
+        let fixedUrl = url;
+        if (url.includes('localhost:3000') && process.env.NODE_ENV === 'production') {
+          // Try to get the external URL from environment variables
+          const externalUrl = process.env.NEXTAUTH_URL || 
+                              process.env.PUBLIC_URL || 
+                              process.env.APP_URL || 
+                              process.env.SITE_URL;
+          
+          // If no environment variable is set, provide helpful logging
+          if (!externalUrl && url.includes('localhost:3000')) {
+            console.log('⚠️ IMPORTANT: Set NEXTAUTH_URL environment variable to your external domain');
+            console.log('⚠️ Example: NEXTAUTH_URL=http://mck8ckswwc84g0k8kk0w40sk.72.60.203.46.sslip.io');
+            console.log('⚠️ This will ensure email links work correctly in Coolify');
+          }
+          
+          if (externalUrl) {
+            fixedUrl = url.replace('http://localhost:3000', externalUrl);
+            console.log('🔧 Fixed URL for deployment:', fixedUrl);
+          } else {
+            console.log('⚠️ Could not fix localhost URL - no external URL found');
+          }
+        }
+        
         try {
           console.log('🚀 Starting email verification process for:', email);
           
-          const { host } = new URL(url)
+          const { host } = new URL(fixedUrl)
           const { createTransport } = await import("nodemailer")
           
           // Get base SMTP config from environment variables
@@ -137,7 +175,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           to: email,
           from: fromAddress,
           subject: `Sign in to ${host}`,
-          text: `Sign in to ${host}\n${url}\n\n`,
+          text: `Sign in to ${host}\n${fixedUrl}\n\n`,
           html: `
             <body style="background: #f9f9f9;">
               <table width="100%" border="0" cellspacing="20" cellpadding="0"
@@ -153,7 +191,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     <table border="0" cellspacing="0" cellpadding="0">
                       <tr>
                         <td align="center" style="border-radius: 5px;" bgcolor="#346df1">
-                          <a href="${url}" target="_blank"
+                          <a href="${fixedUrl}" target="_blank"
                             style="font-size: 18px; font-family: Helvetica, Arial, sans-serif; color: #fff; text-decoration: none; border-radius: 5px; padding: 10px 20px; border: 1px solid #346df1; display: inline-block; font-weight: bold;">
                             Sign in
                           </a>
