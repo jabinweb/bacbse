@@ -13,12 +13,12 @@ export async function POST(request: NextRequest) {
     
     // Get SMTP settings from environment
     const smtpConfig = {
-      host: process.env.EMAIL_SERVER_HOST || 'smtp.hostinger.com',
+      host: process.env.EMAIL_SERVER_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),
       secure: false, // true for 465, false for other ports
       auth: {
-        user: process.env.EMAIL_SERVER_USER || 'info@sciolabs.in',
-        pass: process.env.EMAIL_SERVER_PASSWORD || '',
+        user: process.env.EMAIL_SERVER_USER || 'jabincreators@gmail.com',
+        pass: process.env.EMAIL_SERVER_PASSWORD || '', // Use App Password for Gmail
       },
     };
 
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     // Send test email
     console.log('📧 Sending test email to:', email);
     const result = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || 'info@sciolabs.in',
+      from: process.env.EMAIL_FROM || 'jabincreators@gmail.com',
       to: email,
       subject: 'Test Email from Scio Sprints',
       text: 'This is a test email to verify SMTP configuration.',

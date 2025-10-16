@@ -12,9 +12,14 @@ function getSmtpConfig() {
   return {
     host: process.env.EMAIL_SERVER_HOST || 'smtp.hostinger.com',
     port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),
+    secure: false, // true for 465, false for other ports
     auth: {
       user: process.env.EMAIL_SERVER_USER || 'info@sciolabs.in',
       pass: process.env.EMAIL_SERVER_PASSWORD || '',
+    },
+    // Additional options for better deliverability
+    tls: {
+      rejectUnauthorized: false // Accept self-signed certificates
     },
   };
 }
@@ -117,9 +122,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           let smtpConfig = {
             host: process.env.EMAIL_SERVER_HOST || 'smtp.hostinger.com',
             port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),
+            secure: false, // true for 465, false for other ports
             auth: {
               user: process.env.EMAIL_SERVER_USER || 'info@sciolabs.in',
               pass: process.env.EMAIL_SERVER_PASSWORD || '',
+            },
+            // Additional options for better deliverability
+            tls: {
+              rejectUnauthorized: false
             },
           };
           let fromAddress = process.env.EMAIL_FROM || 'info@sciolabs.in';
@@ -189,41 +199,58 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         
         const result = await transport.sendMail({
           to: email,
-          from: fromAddress,
-          subject: `Sign in to ${host}`,
-          text: `Sign in to ${host}\n${fixedUrl}\n\n`,
+          from: `"Scio Sprints" <${fromAddress}>`, // Better from format
+          replyTo: fromAddress,
+          subject: `Your sign-in link for Scio Sprints`,
+          text: `Hello,\n\nClick the link below to sign in to Scio Sprints:\n${fixedUrl}\n\nThis link will expire in 24 hours.\n\nIf you did not request this email, you can safely ignore it.\n\nBest regards,\nScio Sprints Team`,
           html: `
-            <body style="background: #f9f9f9;">
-              <table width="100%" border="0" cellspacing="20" cellpadding="0"
-                style="background: #fff; max-width: 600px; margin: auto; border-radius: 10px;">
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Sign in to Scio Sprints</title>
+            </head>
+            <body style="background-color: #f9f9f9; margin: 0; padding: 20px; font-family: Arial, sans-serif;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                 <tr>
-                  <td align="center"
-                    style="padding: 10px 0px; font-size: 22px; font-family: Helvetica, Arial, sans-serif; color: #444;">
-                    Sign in to <strong>Scio Sprints</strong>
+                  <td style="padding: 40px 30px; text-align: center; background-color: #346df1;">
+                    <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: bold;">Scio Sprints</h1>
                   </td>
                 </tr>
                 <tr>
-                  <td align="center" style="padding: 20px 0;">
-                    <table border="0" cellspacing="0" cellpadding="0">
+                  <td style="padding: 40px 30px; text-align: center;">
+                    <h2 style="color: #333333; margin: 0 0 20px 0; font-size: 20px;">Sign in to your account</h2>
+                    <p style="color: #666666; margin: 0 0 30px 0; font-size: 16px; line-height: 1.5;">
+                      Click the button below to securely sign in to your Scio Sprints account.
+                    </p>
+                    <table border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
                       <tr>
-                        <td align="center" style="border-radius: 5px;" bgcolor="#346df1">
-                          <a href="${fixedUrl}" target="_blank"
-                            style="font-size: 18px; font-family: Helvetica, Arial, sans-serif; color: #fff; text-decoration: none; border-radius: 5px; padding: 10px 20px; border: 1px solid #346df1; display: inline-block; font-weight: bold;">
-                            Sign in
+                        <td style="border-radius: 6px; background-color: #346df1;">
+                          <a href="${fixedUrl}" 
+                             style="display: inline-block; padding: 14px 28px; font-size: 16px; font-weight: bold; color: #ffffff; text-decoration: none; border-radius: 6px;"
+                             target="_blank">
+                            Sign In Now
                           </a>
                         </td>
                       </tr>
                     </table>
+                    <p style="color: #999999; margin: 30px 0 0 0; font-size: 14px; line-height: 1.5;">
+                      This link will expire in 24 hours for security reasons.<br>
+                      If you didn't request this email, you can safely ignore it.
+                    </p>
                   </td>
                 </tr>
                 <tr>
-                  <td align="center"
-                    style="padding: 0px 0px 10px 0px; font-size: 16px; line-height: 22px; font-family: Helvetica, Arial, sans-serif; color: #444;">
-                    If you did not request this email you can safely ignore it.
+                  <td style="padding: 20px 30px; text-align: center; background-color: #f8f9fa; border-top: 1px solid #e9ecef;">
+                    <p style="color: #666666; margin: 0; font-size: 12px;">
+                      This email was sent by Scio Sprints. If you have questions, please contact support.
+                    </p>
                   </td>
                 </tr>
               </table>
             </body>
+            </html>
           `,
         })
         
