@@ -34,11 +34,8 @@ export function SignIn({
       const currentOrigin = window.location.origin;
       const dynamicCallbackUrl = `${currentOrigin}${callbackUrl}`;
       
-      console.log('🔵 Google sign-in with dynamic callback:', dynamicCallbackUrl);
-      
       await signIn('google', { callbackUrl: dynamicCallbackUrl });
-    } catch (error: unknown) {
-      console.error('Google Sign-in Error:', error);
+    } catch {
       setError('Failed to sign in with Google');
     } finally {
       setIsLoading(false);
@@ -47,21 +44,14 @@ export function SignIn({
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('🔵 Email sign-in button clicked for email:', email);
     
     try {
       setIsLoading(true);
       setError(null);
       
-
-      
       // Get current origin for proper callback URL
       const currentOrigin = window.location.origin;
       const dynamicCallbackUrl = `${currentOrigin}${callbackUrl}`;
-      
-      console.log('🔵 Current origin:', currentOrigin);
-      console.log('🔵 Dynamic callback URL:', dynamicCallbackUrl);
-      console.log('🔵 Using NextAuth signIn function with redirect=false...');
       
       const result = await signIn('nodemailer', { 
         email,
@@ -69,13 +59,9 @@ export function SignIn({
         redirect: false
       });
       
-      console.log('🔵 NextAuth signIn result:', result);
-      
       if (result?.error) {
-        console.error('🔴 NextAuth signIn error:', result.error);
         if (result.error === 'MissingCSRF') {
           // For Coolify deployments, try with redirect: true instead
-          console.log('🔵 CSRF error detected, trying with redirect=true for Coolify...');
           await signIn('nodemailer', { 
             email,
             callbackUrl: dynamicCallbackUrl,
@@ -86,16 +72,13 @@ export function SignIn({
           setError('Failed to send sign-in email. Please try again.');
         }
       } else {
-        console.log('🟢 Email sign-in request successful');
         setEmailSent(true);
         setError(null);
       }
-    } catch (error: unknown) {
-      console.error('🔴 Email Sign-in Error:', error);
+    } catch {
       setError('Failed to send sign-in email');
     } finally {
       setIsLoading(false);
-      console.log('🔵 Email sign-in process completed');
     }
   };
 
@@ -183,43 +166,6 @@ export function SignIn({
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Send Sign-in Link
             </Button>
-            
-            {/* Temporary test button for SMTP debugging */}
-            {process.env.NODE_ENV === 'development' && (
-              <Button 
-                type="button" 
-                variant="outline" 
-                className="w-full mt-2" 
-                onClick={async () => {
-                  if (!email) {
-                    setError('Please enter an email first');
-                    return;
-                  }
-                  
-                  try {
-                    setIsLoading(true);
-                    const response = await fetch('/api/test/email', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ email })
-                    });
-                    
-                    const result = await response.json();
-                    if (result.success) {
-                      setError(`✅ Test email sent! Check ${email}`);
-                    } else {
-                      setError(`❌ SMTP Test failed: ${result.error} - ${result.details}`);
-                    }
-                  } catch {
-                    setError('❌ Test request failed');
-                  } finally {
-                    setIsLoading(false);
-                  }
-                }}
-              >
-                🧪 Test SMTP Settings
-              </Button>
-            )}
             
             <p className="text-xs text-gray-600 text-center">
               We&apos;ll send you a secure link to sign in without a password
