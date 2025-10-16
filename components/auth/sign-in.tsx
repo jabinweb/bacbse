@@ -184,6 +184,43 @@ export function SignIn({
               Send Sign-in Link
             </Button>
             
+            {/* Temporary test button for SMTP debugging */}
+            {process.env.NODE_ENV === 'development' && (
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full mt-2" 
+                onClick={async () => {
+                  if (!email) {
+                    setError('Please enter an email first');
+                    return;
+                  }
+                  
+                  try {
+                    setIsLoading(true);
+                    const response = await fetch('/api/test/email', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email })
+                    });
+                    
+                    const result = await response.json();
+                    if (result.success) {
+                      setError(`✅ Test email sent! Check ${email}`);
+                    } else {
+                      setError(`❌ SMTP Test failed: ${result.error} - ${result.details}`);
+                    }
+                  } catch {
+                    setError('❌ Test request failed');
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+              >
+                🧪 Test SMTP Settings
+              </Button>
+            )}
+            
             <p className="text-xs text-gray-600 text-center">
               We&apos;ll send you a secure link to sign in without a password
             </p>

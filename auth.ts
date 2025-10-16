@@ -169,7 +169,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         
         const transport = createTransport(smtpConfig)
         
+        // Test SMTP connection before sending
+        console.log('🔍 Testing SMTP connection...');
+        try {
+          await transport.verify();
+          console.log('✅ SMTP connection verified successfully');
+        } catch (verifyError) {
+          console.error('❌ SMTP connection failed:', verifyError);
+          throw new Error('SMTP connection failed - check your email settings');
+        }
+        
         console.log('📧 Attempting to send email to:', email);
+        console.log('📧 Email details:', {
+          to: email,
+          from: fromAddress,
+          subject: `Sign in to ${host}`,
+          url: fixedUrl
+        });
         
         const result = await transport.sendMail({
           to: email,
@@ -223,9 +239,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           console.error('❌ Email verification error:', {
             email,
             error: error instanceof Error ? error.message : String(error),
-            stack: error instanceof Error ? error.stack : undefined
+            stack: error instanceof Error ? error.stack : undefined,
+            smtpHost: smtpConfig.host,
+            smtpPort: smtpConfig.port,
+            smtpUser: smtpConfig.auth.user
           });
-          throw new Error('Failed to send sign-in email. Please try again.');
+          
+          // Provide more specific error messages
+          let errorMessage = 'Failed to send sign-in email. Please try again.';
+          if (error instanceof Error) {
+            if (error.message.includes('EAUTH') || error.message.includes('authentication')) {
+              errorMessage = 'Email authentication failed - check SMTP credentials';
+            } else if (error.message.includes('ENOTFOUND') || error.message.includes('connection')) {
+              errorMessage = 'Email server connection failed - check SMTP host/port';
+            } else if (error.message.includes('timeout')) {
+              errorMessage = 'Email sending timed out - please try again';
+            }
+          }
+          
+          throw new Error(errorMessage);
         }
       },
     }),
