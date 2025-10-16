@@ -164,10 +164,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             smtpConfig = {
               host: settingsObj.smtpHost || smtpConfig.host,
               port: parseInt(settingsObj.smtpPort || String(smtpConfig.port)),
+              secure: smtpConfig.secure, // Keep the original secure setting
               auth: {
                 user: settingsObj.smtpUser || smtpConfig.auth.user,
                 pass: settingsObj.smtpPass || smtpConfig.auth.pass,
               },
+              tls: smtpConfig.tls, // Keep the original TLS settings
             };
 
             fromAddress = settingsObj.smtpFrom || fromAddress;
@@ -282,9 +284,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             email,
             error: error instanceof Error ? error.message : String(error),
             stack: error instanceof Error ? error.stack : undefined,
-            smtpHost: smtpConfig.host,
-            smtpPort: smtpConfig.port,
-            smtpUser: smtpConfig.auth.user
+            smtpHost: process.env.EMAIL_SERVER_HOST || 'smtp.hostinger.com',
+            smtpPort: process.env.EMAIL_SERVER_PORT || '587',
+            smtpUser: process.env.EMAIL_SERVER_USER || 'info@sciolabs.in'
           });
           
           // Provide more specific error messages
