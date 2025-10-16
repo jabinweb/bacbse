@@ -60,31 +60,28 @@ export function SignIn({
       
       console.log('🔵 Current origin:', currentOrigin);
       console.log('🔵 Dynamic callback URL:', dynamicCallbackUrl);
+      console.log('🔵 Using NextAuth signIn function with redirect=true...');
       
-      // Try making a direct POST request to the auth API with form data
-      console.log('🔵 Making direct POST request to auth API...');
-      
-      const formData = new FormData();
-      formData.append('email', email);
-      formData.append('callbackUrl', dynamicCallbackUrl);
-      formData.append('provider', 'nodemailer');
-      
-      const response = await fetch('/api/auth/signin/nodemailer', {
-        method: 'POST',
-        body: formData,
+      // Use NextAuth signIn with redirect=true to let NextAuth handle the flow
+      const result = await signIn('nodemailer', {
+        email: email,
+        callbackUrl: dynamicCallbackUrl,
+        redirect: false, // We'll handle the success state manually
       });
       
-      console.log('🔵 Direct POST response status:', response.status);
-      console.log('🔵 Direct POST response headers:', Object.fromEntries(response.headers));
+      console.log('🔵 NextAuth signIn result:', result);
       
-      if (response.ok) {
+      if (result?.error) {
+        console.error('� NextAuth signIn error:', result.error);
+        if (result.error === 'MissingCSRF') {
+          setError('Security token missing. Please refresh the page and try again.');
+        } else {
+          setError('Failed to send sign-in email. Please try again.');
+        }
+      } else {
         console.log('🟢 Email sign-in request successful');
         setEmailSent(true);
         setError(null);
-      } else {
-        const errorText = await response.text();
-        console.error('🔴 Direct POST error:', errorText);
-        setError('Failed to send sign-in email. Please try again.');
       }
     } catch (error: unknown) {
       console.error('🔴 Email Sign-in Error:', error);

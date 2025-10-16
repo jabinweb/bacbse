@@ -26,7 +26,19 @@ console.log('🟦 Environment check:', {
   hasEmailUser: !!process.env.EMAIL_SERVER_USER,
   hasEmailPassword: !!process.env.EMAIL_SERVER_PASSWORD,
   hasEmailFrom: !!process.env.EMAIL_FROM,
+  nodeEnv: process.env.NODE_ENV,
 });
+
+// Dynamically set NEXTAUTH_URL if not set
+if (!process.env.NEXTAUTH_URL && process.env.VERCEL_URL) {
+  process.env.NEXTAUTH_URL = `https://${process.env.VERCEL_URL}`;
+  console.log('🔧 Dynamically set NEXTAUTH_URL to:', process.env.NEXTAUTH_URL);
+} else if (!process.env.NEXTAUTH_URL && process.env.NODE_ENV === 'production') {
+  // In production, try to detect from other environment variables
+  console.log('⚠️ NEXTAUTH_URL not set in production environment');
+}
+
+console.log('🔧 Current NEXTAUTH_URL:', process.env.NEXTAUTH_URL || 'Not set (will use request host)');
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
