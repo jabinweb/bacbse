@@ -31,19 +31,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       server: getSmtpConfig(),
       from: process.env.EMAIL_FROM || 'info@sciolabs.in',
       sendVerificationRequest: async ({ identifier: email, url }) => {
-        const { host } = new URL(url)
-        const { createTransport } = await import("nodemailer")
-        
-        // Get base SMTP config from environment variables
-        let smtpConfig = {
-          host: process.env.EMAIL_SERVER_HOST || 'smtp.hostinger.com',
-          port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),
-          auth: {
-            user: process.env.EMAIL_SERVER_USER || 'info@sciolabs.in',
-            pass: process.env.EMAIL_SERVER_PASSWORD || '',
-          },
-        };
-        let fromAddress = process.env.EMAIL_FROM || 'info@sciolabs.in';
+        try {
+          console.log('🚀 Starting email verification process for:', email);
+          
+          const { host } = new URL(url)
+          const { createTransport } = await import("nodemailer")
+          
+          // Get base SMTP config from environment variables
+          let smtpConfig = {
+            host: process.env.EMAIL_SERVER_HOST || 'smtp.hostinger.com',
+            port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),
+            auth: {
+              user: process.env.EMAIL_SERVER_USER || 'info@sciolabs.in',
+              pass: process.env.EMAIL_SERVER_PASSWORD || '',
+            },
+          };
+          let fromAddress = process.env.EMAIL_FROM || 'info@sciolabs.in';
         
         try {
           const dbSettings = await prisma.adminSettings.findMany({
@@ -80,7 +83,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           console.error('Error fetching SMTP settings from database for email verification, using env config:', error);
         }
         
+        console.log('🔧 SMTP Configuration:', {
+          host: smtpConfig.host,
+          port: smtpConfig.port,
+          user: smtpConfig.auth.user,
+          from: fromAddress,
+          hasPassword: !!smtpConfig.auth.pass
+        });
+        
         const transport = createTransport(smtpConfig)
+        
+        console.log('📧 Attempting to send email to:', email);
         
         const result = await transport.sendMail({
           to: email,
@@ -124,7 +137,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         
         const failed = result.rejected.concat(result.pending).filter(Boolean)
         if (failed.length) {
+          console.error('❌ Email delivery failed:', failed);
           throw new Error(`Email(s) (${failed.join(", ")}) could not be sent`)
+        }
+        
+        console.log('✅ Email sent successfully to:', email);
+        
+        } catch (error) {
+          console.error('❌ Email verification error:', {
+            email,
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined
+          });
+          throw new Error('Failed to send sign-in email. Please try again.');
         }
       },
     }),
