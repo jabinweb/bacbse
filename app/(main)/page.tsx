@@ -56,16 +56,15 @@ export default function Home() {
       {/* Hero Section */}
       <Hero />
          {/* Problem Section */}
-        <RevisionProblems />
+        {/* <RevisionProblems /> */}
         {/* Promise Section */}
         <ScioSprintsPromise />
         {/* Games Section */}
-        <TryGamesSection />   
+        {/* <TryGamesSection />    */}
         {/* Classes tiles section */}
-        <ClassesTiles />
+        {/* <ClassesTiles /> */}
         {/* Platforms Section */}
-        <section id="platforms" className="py-20 relative overflow-hidden">
-          {/* Animated Background */}
+        {/* <section id="platforms" className="py-20 relative overflow-hidden">
           <div className="absolute inset-0">
             <div className="absolute inset-0 bg-gradient-to-r from-brand-blue/20 via-transparent to-brand-orange/20" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,196,0.1)_0%,transparent_50%)]" />
@@ -91,10 +90,8 @@ export default function Home() {
                   rel="noopener noreferrer"
                   className="group relative bg-white/50 backdrop-blur-sm p-6 rounded-2xl hover:shadow-xl transition-all duration-300 border-2 border-white/20 overflow-hidden flex items-center justify-center"
                 >
-                  {/* Hover Effect Background */}
                   <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/10 to-brand-orange/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   
-                  {/* Platform Logo */}
                   <div className="relative h-12 w-full transition-all duration-300 group-hover:scale-110">
                     <div className="absolute inset-0 flex items-center justify-center">
                       <Image
@@ -106,21 +103,21 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Decorative dot pattern */}
                   <div className="absolute -bottom-4 -right-4 w-12 h-12 bg-gradient-to-br from-brand-blue/20 to-brand-orange/20 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300" />
                 </a>
               ))}
             </div>
           </div>
+        </section> */}
+        {/* CTA Section */} 
+        <section id="cta">
+        <CallToAction />
         </section>
         {/* FAQ Section */}
         <section id="faq">
           <FAQ />
         </section>
-        {/* CTA Section */} 
-        <section id="cta">
-        <CallToAction />
-        </section>
+
       </div>
     </>
   );

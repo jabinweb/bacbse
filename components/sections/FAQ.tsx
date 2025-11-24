@@ -7,7 +7,15 @@ import { Card } from "@/components/ui/card";
 const faqs = [
   {
     question: "What age groups is ScioSprints suitable for?",
-    answer: "ScioSprints is ideal for students in Classes 4–8, designed to support foundational learning and revision through engaging, curriculum-aligned activities."
+    answer: "This portal is designed for students in Classes 7 of Bethany Academy. It is designed to support foundational learning and revision through engaging, curriculum-aligned activities."
+  },
+  {
+    question: "Is the content aligned with the school curriculum?",
+    answer: "Yes, the content is fully aligned with the school curriculum."
+  },
+  {
+    question: "Can ScioSprints be used in classrooms with teacher tracking?",
+    answer: "Yes! Teachers can use these activities in class and also request for reports of how the students are using the portal."
   },
   {
     question: "Is the content aligned with the school curriculum?",

@@ -38,7 +38,7 @@ const promiseItems: PromiseItem[] = [
   {
     id: 'curriculum',
     title: 'Curriculum Coverage',
-    description: '100% CBSE-aligned for Classes 4–8, chapter by chapter.',
+    description: '100% curriculum aligned for Classes 7 (CBSE & ICSE)',
     icon: <BookCheck className="w-6 h-6" />,
     color: 'from-orange-500 to-red-600',
   },

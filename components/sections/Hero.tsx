@@ -1,14 +1,13 @@
 'use client';
 
 import { ArrowRight, Play } from 'lucide-react';
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from "@/components/ui/card";
 import Link from 'next/link';
-import GetStartedDialog from './GetStarted';
+// Navigation: Get Started now links directly to the dashboard
 
 export function Hero() {
-  const [getStartedOpen, setGetStartedOpen] = useState(false);
+  
 
   return (
     <section id="hero" className="relative min-h-[100svh] flex items-center justify-center overflow-hidden">
@@ -22,7 +21,7 @@ export function Hero() {
           className="absolute inset-0 w-full h-full object-cover scale-[1.02]"
         >
           <source
-            src="/hero_video.mp4"
+            src="https://sprints.sciolabs.in/hero_video.mp4"
             type="video/mp4"
           />
         </video>
@@ -56,18 +55,18 @@ export function Hero() {
             
             {/* Description */}
             <p className="lead max-w-2xl mx-auto mb-8 text-gray-300">
-              Play curriculum‑aligned games, compete with peers, and climb leaderboards—make your revisions fun and rewarding.
+              Bethany Academy students can play curriculum‑aligned games, compete with peers, and climb leaderboards—make your revisions fun and rewarding.
             </p>
           </div>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 mb-12 sm:mb-16 animate-fade-in">
             <Button
+              asChild
               size="lg"
               className="bg-brand-blue hover:bg-brand-blue-dark text-white text-lg h-12 px-8 rounded-full"
-              onClick={() => setGetStartedOpen(true)}
             >
-              Get Started <ArrowRight className="ml-2 h-5 w-5" />
+              <Link href="/dashboard">Get Started <ArrowRight className="ml-2 h-5 w-5" /></Link>
             </Button>
             <Button
               asChild
@@ -75,19 +74,19 @@ export function Hero() {
               size="lg"
               className="border-white/30 bg-white/5 backdrop-blur-sm text-white hover:bg-white/10 text-lg h-12 px-8 rounded-full"
             >
-              <Link href="#games">
+              {/* <Link href="#games">
               <Play className="mr-2 h-4 w-4" /> Play Now
-              </Link>
+              </Link> */}
             </Button>
           </div>
-          <GetStartedDialog open={getStartedOpen} onClose={() => setGetStartedOpen(false)} />
+          {/* Dialog removed: Get Started navigates to /dashboard */}
           
           {/* Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 max-w-3xl mx-auto px-4 animate-fade-in">
             {[
-              { number: '40+', label: 'Game Formats' },
-              { number: '1000+', label: 'Curriculum-Aligned Activities' },
-              { number: '100+', label: 'HOTS Challenges' }
+              { number: '20+', label: 'Game Formats' },
+              { number: '200+', label: 'Curriculum-Aligned Activities' },
+              { number: '30+', label: 'HOTS Challenges' }
             ].map((stat, index) => (
               <Card key={index} className="bg-white/5 backdrop-blur-sm border-white/10 overflow-hidden group">
                 <CardContent className="p-4 relative">
