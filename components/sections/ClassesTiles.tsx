@@ -80,7 +80,7 @@ export default function ClassesTiles() {
             {classes.map((c) => (
               <Card
                 key={c.id}
-                className="relative cursor-pointer text-center pb-4 px-8 flex items-center justify-center hover:shadow-lg transition-shadow"
+                className="relative cursor-pointer text-center py-4 px-8 flex items-center justify-center hover:shadow-lg transition-shadow"
                 onClick={() => router.push(`/dashboard/class/${c.id}`)}
                 role="button"
                 aria-label={`Open class ${c.name}`}
