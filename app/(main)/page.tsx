@@ -62,7 +62,7 @@ export default function Home() {
         {/* Games Section */}
         {/* <TryGamesSection />    */}
         {/* Classes tiles section */}
-        {/* <ClassesTiles /> */}
+        <ClassesTiles />
         {/* Platforms Section */}
         {/* <section id="platforms" className="py-20 relative overflow-hidden">
           <div className="absolute inset-0">
@@ -110,9 +110,9 @@ export default function Home() {
           </div>
         </section> */}
         {/* CTA Section */} 
-        <section id="cta">
+        {/* <section id="cta">
         <CallToAction />
-        </section>
+        </section> */}
         {/* FAQ Section */}
         <section id="faq">
           <FAQ />

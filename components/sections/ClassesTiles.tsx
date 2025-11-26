@@ -86,13 +86,13 @@ export default function ClassesTiles() {
                 aria-label={`Open class ${c.name}`}
               >
                 {/* Price badge (top-right) */}
-                {c.price !== undefined && c.price !== null && (
+                {/* {c.price !== undefined && c.price !== null && (
                   <div className="absolute top-1 right-1">
                     <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/95 text-sm font-semibold text-gray-800 shadow">
                       {formatINR(c.price)}/year
                     </span>
                   </div>
-                )}
+                )} */}
 
                 <CardContent className="p-0 space-y-2">
                   <span className='text-5xl'>{getClassIcon(c.name)}</span>
